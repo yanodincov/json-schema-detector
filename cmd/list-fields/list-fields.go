@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yanodincov/json-ai-schema-detector/pkg/analyzer"
 	"github.com/yanodincov/json-ai-schema-detector/pkg/fieldmanager"
-	"github.com/yanodincov/json-ai-schema-detector/pkg/types"
 )
 
 var (
@@ -48,7 +47,7 @@ func runListFields(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Загружаем схему
-	analyzer := analyzer.New(types.DefaultConfig())
+	analyzer := analyzer.New()
 	schema, err := analyzer.LoadSchema(schemaFile)
 	if err != nil {
 		return fmt.Errorf("ошибка загрузки схемы: %w", err)

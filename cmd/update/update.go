@@ -3,15 +3,16 @@ package update
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/yanodincov/json-ai-schema-detector/pkg/analyzer"
-	"github.com/yanodincov/json-ai-schema-detector/pkg/types"
 )
 
 var (
 	inputFile  string
-	configFile string
+	autoCommit bool
 )
 
 // Cmd представляет команду update
@@ -26,7 +27,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().StringVarP(&inputFile, "input", "i", "", "JSON файл с новыми данными")
-	Cmd.Flags().StringVarP(&configFile, "config", "c", "", "Файл конфигурации")
+	Cmd.Flags().BoolVarP(&autoCommit, "auto-commit", "a", false, "Автоматический коммит изменений схемы")
 	Cmd.MarkFlagRequired("input")
 }
 
@@ -45,15 +46,8 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Обновление схемы: %s\n", schemaFile)
 	fmt.Printf("Новые данные: %s\n", inputFile)
 
-	// Загружаем конфигурацию
-	config := types.DefaultConfig()
-	if configFile != "" {
-		// TODO: Загрузить конфигурацию из файла
-		fmt.Printf("Использование конфигурации: %s\n", configFile)
-	}
-
 	// Создаем анализатор
-	analyzer := analyzer.New(config)
+	analyzer := analyzer.New()
 
 	// Загружаем существующую схему
 	existingSchema, err := analyzer.LoadSchema(schemaFile)
@@ -80,6 +74,38 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Схема успешно обновлена: %s\n", schemaFile)
 	fmt.Printf("Добавлено новых объектов: %d\n", newResult.Statistics.TotalObjects)
+
+	// Автоматический коммит если флаг установлен
+	if autoCommit {
+		if err := commitSchemaChanges(schemaFile, "update"); err != nil {
+			fmt.Printf("⚠️ Ошибка автоматического коммита: %v\n", err)
+		} else {
+			fmt.Printf("✅ Изменения схемы закоммичены\n")
+		}
+	}
+
+	return nil
+}
+
+// commitSchemaChanges выполняет автоматический коммит изменений схемы
+func commitSchemaChanges(schemaFile, operation string) error {
+	// Проверяем, что мы в git репозитории
+	if _, err := exec.LookPath("git"); err != nil {
+		return fmt.Errorf("git не найден")
+	}
+
+	// Добавляем файл схемы в git
+	cmd := exec.Command("git", "add", schemaFile)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("ошибка git add: %w", err)
+	}
+
+	// Создаем коммит
+	commitMessage := fmt.Sprintf("schema: %s %s", operation, filepath.Base(schemaFile))
+	cmd = exec.Command("git", "commit", "-m", commitMessage)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("ошибка git commit: %w", err)
+	}
 
 	return nil
 }

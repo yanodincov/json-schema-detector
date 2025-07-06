@@ -38,7 +38,7 @@ type Property struct {
 	Description string                 `json:"description,omitempty"`
 	Default     interface{}            `json:"default,omitempty"`
 	Extensions  map[string]interface{} `json:"-"`
-	
+
 	// Дополнительные поля для управления поведением
 	PreserveDefault bool `json:"x-preserve-default,omitempty"` // Защита от перезатирания default
 }
@@ -72,25 +72,3 @@ const (
 	TypeArray   JSONType = "array"
 	TypeNull    JSONType = "null"
 )
-
-// Config представляет конфигурацию анализатора
-type Config struct {
-	EnumThreshold     int    `mapstructure:"enum_threshold" json:"enum_threshold"`
-	OutputFormat      string `mapstructure:"output_format" json:"output_format"`
-	SchemasDirectory  string `mapstructure:"schemas_directory" json:"schemas_directory"`
-	PreserveComments  bool   `mapstructure:"preserve_comments" json:"preserve_comments"`
-	DetectPolymorphic bool   `mapstructure:"detect_polymorphic" json:"detect_polymorphic"`
-	StrictValidation  bool   `mapstructure:"strict_validation" json:"strict_validation"`
-}
-
-// DefaultConfig возвращает конфигурацию по умолчанию
-func DefaultConfig() *Config {
-	return &Config{
-		EnumThreshold:     10,
-		OutputFormat:      "json-schema",
-		SchemasDirectory:  "schemas",
-		PreserveComments:  true,
-		DetectPolymorphic: true,
-		StrictValidation:  false,
-	}
-}

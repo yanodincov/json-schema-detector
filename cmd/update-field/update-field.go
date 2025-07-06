@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -16,6 +18,7 @@ var (
 	interactive bool
 	fieldType   string
 	description string
+	autoCommit  bool
 )
 
 // Cmd представляет команду update-field
@@ -40,6 +43,7 @@ func init() {
 	Cmd.Flags().BoolVarP(&interactive, "interactive", "i", true, "Интерактивный режим")
 	Cmd.Flags().StringVarP(&fieldType, "type", "t", "", "Тип поля (enum, polymorph, description)")
 	Cmd.Flags().StringVarP(&description, "description", "d", "", "Описание поля")
+	Cmd.Flags().BoolVarP(&autoCommit, "auto-commit", "a", false, "Автоматический коммит изменений схемы")
 }
 
 func runUpdateField(cmd *cobra.Command, args []string) error {
@@ -64,7 +68,7 @@ func runUpdateField(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Загружаем схему
-	analyzer := analyzer.New(types.DefaultConfig())
+	analyzer := analyzer.New()
 	schema, err := analyzer.LoadSchema(schemaFile)
 	if err != nil {
 		return fmt.Errorf("ошибка загрузки схемы: %w", err)
@@ -104,6 +108,16 @@ func runUpdateField(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("✅ Поле успешно обновлено: %s\n", jsonPath)
+
+	// Автоматический коммит если флаг установлен
+	if autoCommit {
+		if err := commitSchemaChanges(schemaFile, "update-field"); err != nil {
+			fmt.Printf("⚠️ Ошибка автоматического коммита: %v\n", err)
+		} else {
+			fmt.Printf("✅ Изменения схемы закоммичены\n")
+		}
+	}
+
 	return nil
 }
 
@@ -316,4 +330,27 @@ func promptOperation() (string, error) {
 	}
 
 	return "", fmt.Errorf("ошибка ввода")
+}
+
+// commitSchemaChanges выполняет автоматический коммит изменений схемы
+func commitSchemaChanges(schemaFile, operation string) error {
+	// Проверяем, что мы в git репозитории
+	if _, err := exec.LookPath("git"); err != nil {
+		return fmt.Errorf("git не найден")
+	}
+
+	// Добавляем файл схемы в git
+	cmd := exec.Command("git", "add", schemaFile)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("ошибка git add: %w", err)
+	}
+
+	// Создаем коммит
+	commitMessage := fmt.Sprintf("schema: %s %s", operation, filepath.Base(schemaFile))
+	cmd = exec.Command("git", "commit", "-m", commitMessage)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("ошибка git commit: %w", err)
+	}
+
+	return nil
 }

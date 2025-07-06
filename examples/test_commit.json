@@ -1,0 +1,7 @@
+{
+  "user_id": 123,
+  "username": "testuser",
+  "email": "test@example.com",
+  "status": "active",
+  "created_at": "2024-01-01T00:00:00Z"
+}

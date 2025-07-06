@@ -11,14 +11,11 @@ import (
 
 // Analyzer представляет анализатор JSON структур
 type Analyzer struct {
-	config *types.Config
 }
 
 // New создает новый анализатор
-func New(config *types.Config) *Analyzer {
-	return &Analyzer{
-		config: config,
-	}
+func New() *Analyzer {
+	return &Analyzer{}
 }
 
 // AnalyzeFile анализирует JSON файл и возвращает результат
