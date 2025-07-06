@@ -81,6 +81,8 @@ func runUpdateField(cmd *cobra.Command, args []string) error {
 		err = handlePolymorphicConversion(fieldManager, schema, jsonPath)
 	case "description", "desc":
 		err = handleDescriptionUpdate(fieldManager, schema, jsonPath)
+	case "preserve-default", "preserve":
+		err = handlePreserveDefaultUpdate(fieldManager, schema, jsonPath)
 	default:
 		if interactive {
 			operation, err = promptOperation()
@@ -89,7 +91,7 @@ func runUpdateField(cmd *cobra.Command, args []string) error {
 			}
 			return runUpdateField(cmd, append(args[:2], operation))
 		}
-		return fmt.Errorf("неподдерживаемая операция: %s. Доступные: enum, polymorph, description", operation)
+		return fmt.Errorf("неподдерживаемая операция: %s. Доступные: enum, polymorph, description, preserve-default", operation)
 	}
 
 	if err != nil {
@@ -229,6 +231,31 @@ func handlePolymorphicConversion(fm *fieldmanager.FieldManager, schema *types.An
 	return nil
 }
 
+func handlePreserveDefaultUpdate(fm *fieldmanager.FieldManager, schema *types.AnalysisResult, jsonPath string) error {
+	fmt.Printf("🔒 Защита default значения от перезатирания\n")
+	fmt.Printf("Путь: %s\n", jsonPath)
+	fmt.Println()
+
+	// Находим поле по пути
+	field, err := fm.FindField(schema.Schema, jsonPath)
+	if err != nil {
+		return fmt.Errorf("поле не найдено: %w", err)
+	}
+
+	// Устанавливаем защиту от перезатирания
+	field.PreserveDefault = true
+
+	if field.Default != nil {
+		fmt.Printf("✅ Default значение защищено: %v\n", field.Default)
+	} else {
+		fmt.Printf("⚠️ Default значение отсутствует, но защита установлена\n")
+		fmt.Printf("💡 При следующем анализе default будет заполнен и защищен\n")
+	}
+
+	fmt.Printf("✅ Поле защищено от перезатирания default: %s\n", jsonPath)
+	return nil
+}
+
 func handleDescriptionUpdate(fm *fieldmanager.FieldManager, schema *types.AnalysisResult, jsonPath string) error {
 	fmt.Printf("🎯 Обновление описания поля\n")
 	fmt.Printf("Путь: %s\n", jsonPath)
@@ -268,7 +295,8 @@ func promptOperation() (string, error) {
 	fmt.Printf("1. enum - преобразовать в enum тип\n")
 	fmt.Printf("2. polymorph - преобразовать в полиморфный тип\n")
 	fmt.Printf("3. description - обновить описание\n")
-	fmt.Print("Ваш выбор (1-3): ")
+	fmt.Printf("4. preserve-default - защитить default от перезатирания\n")
+	fmt.Print("Ваш выбор (1-4): ")
 
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
@@ -280,6 +308,8 @@ func promptOperation() (string, error) {
 			return "polymorph", nil
 		case "3":
 			return "description", nil
+		case "4":
+			return "preserve-default", nil
 		default:
 			return "", fmt.Errorf("неверный выбор: %s", choice)
 		}

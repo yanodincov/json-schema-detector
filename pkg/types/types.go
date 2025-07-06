@@ -22,6 +22,7 @@ type JSONSchema struct {
 	OneOf       []*JSONSchema          `json:"oneOf,omitempty"`
 	AnyOf       []*JSONSchema          `json:"anyOf,omitempty"`
 	Description string                 `json:"description,omitempty"`
+	Default     interface{}            `json:"default,omitempty"`
 	Extensions  map[string]interface{} `json:"-"`
 }
 
@@ -35,7 +36,11 @@ type Property struct {
 	OneOf       []*JSONSchema          `json:"oneOf,omitempty"`
 	AnyOf       []*JSONSchema          `json:"anyOf,omitempty"`
 	Description string                 `json:"description,omitempty"`
+	Default     interface{}            `json:"default,omitempty"`
 	Extensions  map[string]interface{} `json:"-"`
+	
+	// Дополнительные поля для управления поведением
+	PreserveDefault bool `json:"x-preserve-default,omitempty"` // Защита от перезатирания default
 }
 
 // AnalysisMetadata содержит метаданные анализа

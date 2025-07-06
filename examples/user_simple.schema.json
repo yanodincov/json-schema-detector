@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "active": {
+      "type": "boolean"
+    },
+    "age": {
+      "type": "number"
+    },
+    "email": {
+      "type": "string"
+    },
+    "id": {
+      "type": "number"
+    },
+    "name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "default": "admin",
+      "x-preserve-default": true
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "notifications": {
+          "type": "boolean"
+        },
+        "theme": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme",
+        "notifications",
+        "language"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "email",
+    "age",
+    "active",
+    "role",
+    "settings"
+  ],
+  "description": "Generated JSON Schema"
+}

@@ -54,8 +54,30 @@ func (a *Analyzer) analyzeData(data interface{}) (*types.AnalysisResult, error) 
 		},
 	}
 
-	// Анализируем корневой элемент
-	schema, err := a.analyzeValue(data, "", result.Statistics)
+	// Определяем тип корневого элемента
+	var schema *types.Property
+	var err error
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		// Проверяем, есть ли поле 'data' - массив
+		if dataField, exists := v["data"]; exists {
+			if _, ok := dataField.([]interface{}); ok {
+				// Это структура с массивом данных
+				schema, err = a.analyzeValue(data, "", result.Statistics)
+			} else {
+				// Поле 'data' существует, но не массив - анализируем как обычный объект
+				schema, err = a.analyzeValue(data, "", result.Statistics)
+			}
+		} else {
+			// Нет поля 'data' - считаем за один объект
+			schema, err = a.analyzeValue(data, "", result.Statistics)
+		}
+	default:
+		// Анализируем как есть
+		schema, err = a.analyzeValue(data, "", result.Statistics)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +89,7 @@ func (a *Analyzer) analyzeData(data interface{}) (*types.AnalysisResult, error) 
 		Properties:  schema.Properties,
 		Items:       schema.Items,
 		Required:    schema.Required,
+		Default:     schema.Default,
 		Description: "Generated JSON Schema",
 	}
 
@@ -82,15 +105,27 @@ func (a *Analyzer) analyzeValue(value interface{}, path string, stats *types.Ana
 		return a.analyzeArray(v, path, stats)
 	case string:
 		stats.TypeDistribution["string"]++
-		return &types.Property{Type: "string"}, nil
+		property := &types.Property{Type: "string"}
+		if v != "" { // Заполняем default только если строка не пустая
+			property.Default = v
+		}
+		return property, nil
 	case float64:
 		stats.TypeDistribution["number"]++
-		return &types.Property{Type: "number"}, nil
+		property := &types.Property{Type: "number"}
+		if v != 0 { // Заполняем default только если число не равно 0
+			property.Default = v
+		}
+		return property, nil
 	case bool:
 		stats.TypeDistribution["boolean"]++
-		return &types.Property{Type: "boolean"}, nil
+		property := &types.Property{Type: "boolean"}
+		// Для boolean всегда заполняем default
+		property.Default = v
+		return property, nil
 	case nil:
 		stats.TypeDistribution["null"]++
+		// Для null не заполняем default
 		return &types.Property{Type: "null"}, nil
 	default:
 		return nil, fmt.Errorf("неподдерживаемый тип данных: %T", v)
@@ -200,7 +235,84 @@ func (a *Analyzer) LoadSchema(filename string) (*types.AnalysisResult, error) {
 
 // MergeResults объединяет результаты анализа
 func (a *Analyzer) MergeResults(existing, new *types.AnalysisResult) (*types.AnalysisResult, error) {
-	// TODO: Реализовать логику объединения схем
-	// Пока просто возвращаем новый результат
-	return new, nil
+	// Обновляем схему с учетом новых данных
+	a.mergeProperties(existing.Schema.Properties, new.Schema.Properties, "")
+
+	// Обновляем статистики
+	if existing.Statistics != nil && new.Statistics != nil {
+		for key, count := range new.Statistics.FieldFrequency {
+			existing.Statistics.FieldFrequency[key] += count
+		}
+		for key, count := range new.Statistics.TypeDistribution {
+			existing.Statistics.TypeDistribution[key] += count
+		}
+		existing.Statistics.TotalObjects += new.Statistics.TotalObjects
+	}
+
+	return existing, nil
+}
+
+// mergeProperties рекурсивно объединяет свойства схем
+func (a *Analyzer) mergeProperties(existing, new map[string]*types.Property, path string) {
+	for key, newProp := range new {
+		currentPath := path + "." + key
+		if currentPath[0] == '.' {
+			currentPath = currentPath[1:]
+		}
+
+		if existingProp, exists := existing[key]; exists {
+			// Поле уже существует - обновляем
+			a.mergeProperty(existingProp, newProp, currentPath)
+		} else {
+			// Новое поле - добавляем
+			existing[key] = newProp
+		}
+	}
+}
+
+// mergeProperty объединяет два свойства
+func (a *Analyzer) mergeProperty(existing, new *types.Property, path string) {
+	// Обновляем default значения
+	if !existing.PreserveDefault {
+		a.updateDefaultValue(existing, new)
+	}
+
+	// Рекурсивно обновляем вложенные свойства
+	if existing.Type == "object" && new.Type == "object" {
+		if existing.Properties == nil {
+			existing.Properties = make(map[string]*types.Property)
+		}
+		if new.Properties != nil {
+			a.mergeProperties(existing.Properties, new.Properties, path)
+		}
+	}
+
+	// Для массивов обновляем items
+	if existing.Type == "array" && new.Type == "array" {
+		if existing.Items != nil && new.Items != nil {
+			a.mergeProperty(existing.Items, new.Items, path+"[0]")
+		}
+	}
+}
+
+// updateDefaultValue обновляет default значение согласно правилам
+func (a *Analyzer) updateDefaultValue(existing, new *types.Property) {
+	// Если у существующего свойства нет default, устанавливаем из нового
+	if existing.Default == nil && new.Default != nil {
+		existing.Default = new.Default
+		return
+	}
+
+	// Если у существующего есть default, а у нового другое значение - обнуляем default
+	if existing.Default != nil && new.Default != nil {
+		if !a.isEqualValue(existing.Default, new.Default) {
+			existing.Default = nil
+		}
+	}
+}
+
+// isEqualValue сравнивает два значения
+func (a *Analyzer) isEqualValue(a1, a2 interface{}) bool {
+	// Простое сравнение значений
+	return fmt.Sprintf("%v", a1) == fmt.Sprintf("%v", a2)
 }

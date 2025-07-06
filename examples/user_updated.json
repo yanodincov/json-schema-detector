@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "age": 25,
+  "active": false,
+  "role": "user",
+  "settings": {
+    "theme": "light",
+    "notifications": false,
+    "language": "ru"
+  }
+}
