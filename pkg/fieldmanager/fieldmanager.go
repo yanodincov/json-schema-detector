@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/yanodincov/json-ai-schema-detector/pkg/types"
+	"github.com/yanodincov/json-schema-detector/pkg/types"
 )
 
 // FieldManager управляет полями в JSON Schema

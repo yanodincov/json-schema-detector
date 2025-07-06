@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"github.com/spf13/cobra"
-	"github.com/yanodincov/json-ai-schema-detector/pkg/analyzer"
-	"github.com/yanodincov/json-ai-schema-detector/pkg/fieldmanager"
+	"github.com/yanodincov/json-schema-detector/pkg/analyzer"
+	"github.com/yanodincov/json-schema-detector/pkg/fieldmanager"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/yanodincov/json-ai-schema-detector/pkg/validator"
+	"github.com/yanodincov/json-schema-detector/pkg/validator"
 )
 
 var (

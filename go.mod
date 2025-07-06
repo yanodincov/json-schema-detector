@@ -1,4 +1,4 @@
-module github.com/yanodincov/json-ai-schema-detector
+module github.com/yanodincov/json-schema-detector
 
 go 1.24.0
 

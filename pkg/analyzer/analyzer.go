@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/yanodincov/json-ai-schema-detector/pkg/types"
+	"github.com/yanodincov/json-schema-detector/pkg/types"
 )
 
 // Analyzer представляет анализатор JSON структур

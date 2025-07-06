@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/yanodincov/json-ai-schema-detector/pkg/analyzer"
+	"github.com/yanodincov/json-schema-detector/pkg/analyzer"
 )
 
 var (

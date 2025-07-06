@@ -2,11 +2,11 @@ package root
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/yanodincov/json-ai-schema-detector/cmd/analyze"
-	listfields "github.com/yanodincov/json-ai-schema-detector/cmd/list-fields"
-	"github.com/yanodincov/json-ai-schema-detector/cmd/update"
-	updatefield "github.com/yanodincov/json-ai-schema-detector/cmd/update-field"
-	"github.com/yanodincov/json-ai-schema-detector/cmd/validate"
+	"github.com/yanodincov/json-schema-detector/cmd/analyze"
+	listfields "github.com/yanodincov/json-schema-detector/cmd/list-fields"
+	"github.com/yanodincov/json-schema-detector/cmd/update"
+	updatefield "github.com/yanodincov/json-schema-detector/cmd/update-field"
+	"github.com/yanodincov/json-schema-detector/cmd/validate"
 )
 
 var rootCmd = &cobra.Command{
