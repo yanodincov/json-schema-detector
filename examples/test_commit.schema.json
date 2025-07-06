@@ -12,6 +12,12 @@
     },
     "status": {
       "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "inactive"
+      ],
+      "description": "Статус пользователя",
       "default": "active"
     },
     "user_id": {
