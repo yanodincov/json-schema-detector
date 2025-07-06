@@ -1,0 +1,97 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+1. README_DOCUMENTATION_STANDARD
+    PURPOSE: COMPREHENSIVE_PRACTICAL_README_FILES_SERVICE_DOCUMENTATION_GUIDELINES_V1
+    LANGUAGE: ENGLISH_MANDATORY
+    PHILOSOPHY: LIVING_DOCUMENT_FIRST_DEVELOPER_REFERENCE_CLARITY_ACCURACY_COMPLETENESS
+
+2. MANDATORY_SECTIONS_STRUCTURE_ORDER
+    SERVICE_TITLE_H1: "# <service_name> service"
+        CONTENT: SERVICE_PURPOSE_FUNCTIONALITY_MAIN_RESPONSIBILITIES_USE_CASES
+    RUNNING_COMPONENTS_H2: "## Running components"
+        FORMAT: BULLET_LIST_BINARY_NAMES_ONLY (e.g., "- api", "- worker")
+    DEPENDENCIES_H2: "## Dependencies"
+        INFRASTRUCTURE_H3: "### Infrastructure" (databases, queues, caches)
+        INTERNAL_SERVICES_H3: "### Internal services" (format: "- service-name (PROTOCOL)")
+        EXTERNAL_API_H3: "### External API" (format: "- provider-name, mandatory/optional")
+    CRITICAL_METRICS_H2: "## Critical metrics"
+        FORMAT: "* `metric_name{labels="values"}` Description with interpretation guidance"
+        CONTENT: CRITICAL_ONLY_NOT_COMPLETE_LIST_INCLUDE_THRESHOLDS_PROBLEM_INDICATORS
+    PROJECT_MAINTAINERS_H2: "## Project maintainers"
+        FORMAT: "Code changes to the project should be reviewed by:"
+        LIST_FORMAT: "* Name <email>"
+        ESCALATION_INFO: INCLUDE_IF_NEEDED
+
+3. OPTIONAL_SECTIONS_ALLOWED
+    ARCHITECTURE_FLOW_H2: "## Architecture & Flow"
+    TROUBLESHOOTING_H2: "## Troubleshooting Guide"
+    ANY_OTHER_SECTIONS: AS_NEEDED
+
+4. FORMATTING_REQUIREMENTS
+    MARKDOWN: STANDARD_GITHUB_EXTENSIONS_TABLES_ALLOWED
+    HEADERS: STRICT_ADHERENCE_NAMES_LEVELS_AUTOMATED_EXTRACTION
+    EXTERNAL_MODIFICATIONS: README_MAY_BE_MODIFIED_BY_SCRIPTS
+    CODE_BLOCKS: USE_LANGUAGE_SPECIFICATION (json, yaml, bash, go)
+    EMPHASIS:
+        BOLD: **text** (key_terms, commands, filenames)
+        CODE: `text` (inline_code, paths, env_vars, json_keys)
+
+5. DOCUMENTATION_ORGANIZATION
+    ROOT_README: MANDATORY_PROJECT_ROOT
+    SUBDIRECTORY_README: DETAILED_DOCS_WELCOMED
+    GENERAL_DOCS: DEDICATED_DOC_DIRECTORY (sequence_diagrams, architecture_docs)
+
+6. REVIEW_PROCESS_POLICY
+    DOC_CHANGES: REVIEWED_AS_CODE_PRS_NO_REDEPLOY_REQUIRED
+    MAINTAINER_CHANGES: REQUIRE_GO_TEAM_LEAD_APPROVAL
+    JIRA_LINKING: OPTIONAL_FOR_DOC_CHANGES
+    UPDATE_POLICY: WITH_SIGNIFICANT_SERVICE_CHANGES
+
+7. QUALITY_ASSURANCE
+    DIAGRAMS: USE_WHERE_APPROPRIATE_PLANTUML_D2_PREFERRED
+    EXTERNAL_LINKS: CONFLUENCE_DOCUMENTATION_ENSURE_VALIDITY
+    MAINTAINER_INFO: ACCURATE_CURRENT_CLEAR_ESCALATION_PATHS
+
+8. EXAMPLE_TEMPLATE
+    '''
+    # Payment Gateway service
+    
+    Brief description of payment processing capabilities...
+    
+    ## Running components
+    - api
+    - worker
+    - callback-processor
+    
+    ## Dependencies
+    
+    ### Infrastructure
+    - postgresql
+    - redis
+    - rabbitmq
+    
+    ### Internal services
+    - user-service (GRPC)
+    - notification-service (HTTP)
+    
+    ### External API
+    - stripe-api, mandatory
+    - paypal-api, optional
+    
+    ## Critical metrics
+    
+    * `payment_transactions_total{status="success|failed"}` Monitor for >5% failure rate indicating provider issues.
+    * `queue_messages{queue="callbacks"}` Values >100 for >10min indicate processing bottleneck.
+    
+    ## Project maintainers
+    
+    Code changes to the project should be reviewed by:
+    
+    * John Doe <j.doe@company.com>
+    * Jane Smith <j.smith@company.com>
+    
+    In case of inaccessibility ask Unit-1 members.
+    '''

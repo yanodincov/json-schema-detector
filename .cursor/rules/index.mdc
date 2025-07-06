@@ -1,0 +1,158 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+MANDATORY_SMART_RULE_LOADING_SYSTEM
+    COMMAND: IMMEDIATELY_ANALYZE_USER_REQUEST_AND_LOAD_MATCHING_RULES
+    EXECUTION_MODE: AUTOMATIC_TRIGGER_BASED_SELECTION
+    ALWAYS_LOAD_meta-rules.mdc_WHEN_RULES_MENTIONED: MANDATORY
+
+IMMEDIATE_RULE_LOADING_TRIGGERS:
+    META_RULES_MCD (2.5KB_META_OPERATIONS):
+        USER_KEYWORDS: правил, правила, индекс, meta-rules, мета-правила, изменения_правил, обновление_правил, правило, godoc, внешний_пакет, документация_пакета, protobuf, недоступный_пакет, mcp
+        CODE_ANALYSIS: *.mdc_modifications, translate/*.md_modifications, rule_file_operations, index_operations, external_package_access, protobuf_undefined_fields
+        AUTO_LOAD_WITH: index.mdc
+        
+    AI_GO_DEVELOPMENT_MCD (17KB_CORE_RULES_GO_ONLY):
+        USER_KEYWORDS: создай_код, напиши_метод, структура, интерфейс, ошибки, errfmt, константы, переменные, порядок_элементов, форматирование, DTO, модели, init, контекст, параметры, зависимость, dependency, types.go, consumer, return, пустые_строки, отформатируй, правила_форматирования, стиль_кода, go:generate, mockgen, размещение_директив, директивы_генерации, генерация_кода
+        CODE_ANALYSIS: .go_files, package_declarations, struct_definitions, func_declarations, error_handling, const_var_blocks, type_interface, interface{}, dependency_injection, constructor_params, return_statements, go_generate_directives, mockgen_commands
+        AUTO_LOAD_WITH: go-test.mdc, auto-go.mdc
+        
+    AI_GO_LOGGING_MCD (5KB_LOGGING_GO_ONLY):
+        USER_KEYWORDS: логирование, zap, logger, маскирование, чувствительные_данные, лог, mask, безопасность
+        CODE_ANALYSIS: zap.Logger, logger.NewEntry, zap.String, zap.Error, s.logger, Mask(), private-fields/mask
+        
+    AI_GO_TEST_MCD (14.3KB_TESTING_GO_ONLY):
+        USER_KEYWORDS: тест, testing, mock, fixture, gomock, setUp, unit, проверка, gotestsum
+        CODE_ANALYSIS: *_test.go, func_Test, t.Run, gomock.Controller, NewMock, fixture_struct, setUp_func
+        
+    AI_GO_CONCURRENCY_MCD (4KB_PARALLEL_GO_ONLY):
+        USER_KEYWORDS: goroutine, mutex, параллельно, concurrency, waitgroup, sync, channel, errgroup
+        CODE_ANALYSIS: go_func, sync.Mutex, sync.RWMutex, sync.WaitGroup, errgroup.WithContext, chan, goroutine
+        
+
+    AI_GO_GOCK_MCD (1.3KB_HTTP_MOCKS_GO_ONLY):
+        USER_KEYWORDS: gock, http, mock, fixture, внешний_api, тест_http
+        CODE_ANALYSIS: gock.New, http.Client, http.Request, gock.InterceptClient, external_api_calls
+        
+    AI_AUTO_GIT_MCD (2.2KB_GIT_AUTOMATION):
+        USER_KEYWORDS: коммит, commit, git, подготовь_коммит, сделай_коммит, закомить, сообщение_коммита
+        CODE_ANALYSIS: git_status_changes, modified_files, git_branch_analysis, commit_message_standards
+        
+    AI_AUTO_GO_MCD (7.9KB_CODE_QUALITY_GO_ONLY):
+        USER_KEYWORDS: goimports, golangci, lint, форматирование_кода, gvm, качество, импорты, сортировка_импортов, gotestsum
+        CODE_ANALYSIS: go_import_statements, code_style_issues, go.mod_file, golangci_errors, import_grouping
+        
+    AI_README_MCD (3.4KB_DOCUMENTATION):
+        USER_KEYWORDS: readme, документация, documentation, описание_сервиса
+        CODE_ANALYSIS: README.md_files, service_structure_analysis, project_documentation
+
+MANDATORY_LOADING_EXECUTION_SEQUENCE:
+    STEP_1: ALWAYS_IMMEDIATELY_EXTRACT_USER_KEYWORDS_AND_OPERATION_TYPE
+    STEP_2: ALWAYS_IMMEDIATELY_SCAN_VISIBLE_FILES_FOR_CODE_PATTERNS
+    STEP_3: ALWAYS_IMMEDIATELY_COMBINE_USER_KEYWORDS_AND_CODE_ANALYSIS
+    STEP_4: ALWAYS_IMMEDIATELY_LOAD_MATCHED_AI_RULES_PLUS_AUTO_DEPENDENCIES
+    STEP_5: ALWAYS_IMMEDIATELY_USE_LOADED_RULES_FOR_RESPONSE_EXECUTION
+
+MANDATORY_NOTIFICATION_SYSTEM:
+    COMMAND: ALWAYS_IMMEDIATELY_INFORM_USER_ABOUT_RULE_LOADING_DECISIONS
+    EXECUTE: MANDATORY_NOTIFICATION_FOR_ALL_RULE_LOADING_DECISIONS_WITHOUT_EXCEPTION
+    
+    ALWAYS_EXECUTE_NOTIFICATION_TRIGGERS:
+        ON_ANY_RULE_LOADING: ALWAYS_IMMEDIATELY_NOTIFY_BEFORE_TASK_EXECUTION
+        ON_AUTO_LOADING: ALWAYS_IMMEDIATELY_NOTIFY_WHEN_AUTO_DEPENDENCIES_ACTIVATED
+        ON_FALLBACK: ALWAYS_IMMEDIATELY_NOTIFY_WHEN_USING_FALLBACK_STRATEGY
+        ON_MULTI_CATEGORY: ALWAYS_IMMEDIATELY_NOTIFY_WHEN_MULTIPLE_CATEGORIES_MATCHED
+    
+    NOTIFICATION_FORMAT:
+        TEMPLATE: STRUCTURED_MULTILINE_WITH_SEPARATORS
+        
+        FORMAT_STRUCTURE:
+            LINE_1: "---"
+            LINE_2: "🔧 **Загрузка правил активирована**"
+            LINE_3: ""
+            LINE_4: "📁 **Загружаемые файлы:**"
+            LINE_5+: "   • `{RULE_FILE_NAME}`"
+            LINE_N: ""
+            LINE_N+1: "🎯 **Триггеры:**"
+            LINE_N+2: "   • {TRIGGER_TYPE}: {TRIGGER_DETAILS}"
+            LINE_N+3: ""
+            LINE_N+4: "💡 **Причина:** {REASON_EXPLANATION}"
+            LINE_N+5: "---"
+        
+        EXAMPLES:
+            EXAMPLE_1_GO_DEVELOPMENT:
+                "---"
+                "🔧 **Загрузка правил активирована**"
+                ""
+                "📁 **Загружаемые файлы:**"
+                "   • `go-development.mdc`"
+                "   • `go-test.mdc`"
+                "   • `auto-go.mdc`"
+                ""
+                "🎯 **Триггеры:**"
+                "   • Ключевые слова: создай_код, структура"
+                "   • Анализ кода: .go файлы обнаружены"
+                ""
+                "💡 **Причина:** Обнаружена работа с Go кодом и запрос на создание структур"
+                "---"
+                
+            EXAMPLE_2_META_RULES:
+                "---"
+                "🔧 **Загрузка правил активирована**"
+                ""
+                "📁 **Загружаемые файлы:**"
+                "   • `meta-rules.mdc`"
+                "   • `index.mdc`"
+                ""
+                "🎯 **Триггеры:**"
+                "   • Ключевые слова: правил, индекс"
+                "   • Анализ кода: модификация .mdc файлов"
+                ""
+                "💡 **Причина:** Запрос на изменение или работу с правилами системы"
+                "---"
+    
+    NOTIFICATION_DETAILS:
+        INCLUDE_REASON: WHY_THESE_RULES_WERE_SELECTED
+        INCLUDE_TRIGGERS: WHAT_KEYWORDS_OR_CODE_PATTERNS_MATCHED
+        INCLUDE_AUTO_DEPS: LIST_AUTO_LOADED_DEPENDENCIES
+        FORMATTING: USE_MARKDOWN_STYLING_AND_EMOJIS
+    
+    MANDATORY_NOTIFICATION_TIMING:
+        WHEN: ALWAYS_IMMEDIATELY_AFTER_RULE_SELECTION_BEFORE_MAIN_RESPONSE
+        POSITION: ALWAYS_START_OF_AI_RESPONSE_AS_SYSTEM_MESSAGE
+        FORMAT: ALWAYS_MULTILINE_STRUCTURED_WITH_MARKDOWN
+
+MANDATORY_TYPICAL_COMBINATIONS_AUTO_LOADING:
+    RULE_MANAGEMENT_DETECTED: ALWAYS_IMMEDIATELY_LOAD_meta-rules + index
+    GO_FILE_DETECTED: ALWAYS_IMMEDIATELY_LOAD_go-development + go-test + auto-go
+    HTTP_CODE_DETECTED: ALWAYS_IMMEDIATELY_LOAD_go-gock + go-test_IF_TESTING_CONTEXT
+    CONCURRENCY_DETECTED: ALWAYS_IMMEDIATELY_LOAD_go-concurrency + go-development
+    LOGGING_CODE_DETECTED: ALWAYS_IMMEDIATELY_LOAD_go-logging + go-development
+    TEST_FILE_DETECTED: ALWAYS_IMMEDIATELY_LOAD_go-test + go-development
+    README_FILE_DETECTED: ALWAYS_IMMEDIATELY_LOAD_readme
+    
+MANDATORY_FALLBACK_EXECUTION_STRATEGY:
+    IF_UNCERTAIN: ALWAYS_IMMEDIATELY_LOAD_go-development.mdc_AS_CORE_RULES
+    IF_NO_MATCH: ALWAYS_IMMEDIATELY_REQUEST_CLARIFICATION
+    IF_MULTIPLE_CATEGORIES: ALWAYS_IMMEDIATELY_LOAD_ALL_MATCHED_CATEGORIES
+
+MANDATORY_RULE_UPDATE_SYNCHRONIZATION:
+    TRIGGER: ALWAYS_IMMEDIATELY_ON_ANY_CHANGE_TO_*.mdc_OR_translate/*.md
+    EXECUTE: ALWAYS_IMMEDIATELY_SYNCHRONIZE_KEYWORDS_AND_DESCRIPTIONS_IN_INDEX
+    RESPONSIBILITY: ALWAYS_IMMEDIATELY_UPDATE_BOTH_index_AND_translate/index
+    
+MANDATORY_TRANSLATION_SYNC_ENFORCEMENT:
+    ON_ANY_RULE_MODIFICATION:
+        STEP_1_MANDATORY: UPDATE_AI_VERSION_*.mdc
+        STEP_2_MANDATORY: UPDATE_HUMAN_VERSION_translate/*.md
+        STEP_3_MANDATORY: UPDATE_index.mdc_KEYWORDS
+        STEP_4_MANDATORY: UPDATE_translate/index.md_KEYWORDS
+        FAILURE_HANDLING: NEVER_SKIP_NEVER_COMPLETE_WITHOUT_ALL_4_STEPS
+        
+    AUTOMATIC_VERIFICATION:
+        ALWAYS_CHECK_TRANSLATE_FOLDER_EXISTS: true
+        ALWAYS_VERIFY_CORRESPONDING_MD_FILE: true
+        ALWAYS_UPDATE_MISSING_TRANSLATIONS: true
+        NEVER_LEAVE_UNSYNCHRONIZED: true

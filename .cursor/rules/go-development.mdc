@@ -1,0 +1,470 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+1. CONSTANTS_AND_GLOBALS_MANAGEMENT_POLICY
+    LOCATION_RULE:
+        SINGLE_FILE_USE: CONSTANTS_AND_GLOBALS_AT_FILE_TOP_AFTER_IMPORTS
+        MULTI_FILE_USE: CONSTANTS_AND_GLOBALS_IN_MAIN_STRUCT_FILE_OR_FACTORY_FILE
+        ORDER: CONSTANTS_FIRST_THEN_VARS_ALWAYS_AFTER_IMPORTS
+    NAMING: 
+        PRIVATE_CONSTANTS: camelCase (e.g., maxRetryCount, defaultTimeout)
+        PUBLIC_CONSTANTS: CamelCase (e.g., MaxItems, DefaultPort)
+        PRIVATE_VARS: camelCase (e.g., logger, config)
+        PUBLIC_VARS: CamelCase (e.g., DefaultLogger, GlobalConfig)
+        DESCRIPTIVE_NAMES: TRUE
+    GROUPING: 
+        CONSTANTS_BLOCK: RELATED_CONSTANTS_TOGETHER_WITH_EMPTY_LINES_SEPARATION
+        VARS_BLOCK: RELATED_VARS_TOGETHER_WITH_EMPTY_LINES_SEPARATION
+        BLOCK_ORDER: CONST_BLOCKS_FIRST_THEN_VAR_BLOCKS
+        EMPTY_LINE_BETWEEN_CONST_AND_VAR_SECTIONS: MANDATORY
+    EXAMPLE_ORGANIZATION:
+        // Blocks of constants first
+        const (
+            defaultPort = 8080
+            maxConnections = 1000
+        )
+        
+        const (
+            requestTimeout = 30 * time.Second
+        )
+        
+        // Empty line separator
+        
+        // Blocks of variables second
+        var (
+            logger *zap.Logger
+            logLevel string
+        )
+        
+        var (
+            config *Config
+        )
+
+1.1. VARIABLE_DECLARATION_POLICY
+    EMPTY_VARIABLES: USE_VAR_KEYWORD (ALLOWED_AS_BLOCK_OR_SINGLE)
+    INITIALIZED_LOCAL_VARIABLES: USE_SHORT_DECLARATION_ASSIGNMENT_ONLY (:=)
+    GLOBAL_VARIABLES: ALWAYS_DECLARE_EMPTY_WITH_VAR_INITIALIZE_IN_INIT_OR_MAIN
+    NO_VAR_WITH_INITIALIZATION: FORBIDDEN_VAR_NAME_TYPE_EQUALS_VALUE
+    EXAMPLES:
+        CORRECT_EMPTY_VARS:
+            var name string
+            var count int
+            var (
+                user *User
+                config *Config
+            )
+        CORRECT_INITIALIZED_LOCAL_VARS:
+            name := "value"
+            count := getCount()
+            user := &User{}
+        CORRECT_GLOBAL_VAR_PATTERN:
+            var globalConfig *Config
+            func init() { globalConfig = loadConfig() }
+        FORBIDDEN_PATTERNS:
+            var name string = "value"  // USE := INSTEAD
+            var count int = 10         // USE := INSTEAD
+
+2. ERROR_MANAGEMENT_POLICY
+    MANDATORY_WRAPPING: ALL_ERRORS_MUST_BE_WRAPPED_WITH_ERRFMT_ERROR
+    AVAILABLE_FUNCTIONS
+        ERRFMT_ERROR(err, "description", ...args): WRAP_SINGLE_EXISTING_ERROR
+        ERRFMT_NEWERROR("description", ...args): CREATE_NEW_ERROR_FOR_GLOBAL_VARS_ONLY
+    FUNCTION_PURPOSE
+        ERRFMT_ERROR: WRAP_EXISTING_ERROR_WITH_CONTEXT
+        ERRFMT_NEWERROR: CREATE_PREDEFINED_ERRORS_IN_GLOBAL_VARS_ONLY
+    ARGUMENT_HANDLING
+        ALL_FUNCTIONS_SUPPORT_VARIADIC_ARGS: TRUE
+        VARIADIC_ARGS_EXAMPLE: "param_name1", param_value1, "param_name2", param_value2
+        ALL_KEY_STRING_ARGS_TYPE: STRING
+    PREDEFINED_ERRORS: DECLARE_AS_GLOBAL_VARS_WITH_ERRFMT_NEWERROR_FOR_REUSE
+    LOCATION: PACKAGE_LEVEL_VARS_OR_DEDICATED_ERRORS_FILE
+    NAMING_CONVENTION: Err + DescriptiveName (e.g., ErrInvalidInput, ErrUserNotFound)
+    ERROR_DECLARATION_PATTERN: var ErrUserNotFound = errfmt.NewError("user not found")
+    USAGE_PATTERNS:
+        WRAP_EXISTING_ERROR: errfmt.Error(err, "context description")
+        USE_PREDEFINED_ERROR: errfmt.Error(ErrUserNotFound, "additional context")
+        RETURN_PREDEFINED_DIRECTLY: return ErrUserNotFound (when no additional context needed)
+    STRING_LITERALS_POLICY: 
+        FORBIDDEN_IN_RETURNS: NEVER_RETURN_errfmt.NewError("string")_DIRECTLY
+        REQUIRED_PATTERN: CREATE_GLOBAL_VAR_FIRST_THEN_USE_IT
+        ONLY_IN_GLOBAL_VARS: errfmt.NewError("description")_ONLY_FOR_VAR_DECLARATIONS
+    PROHIBITED_USAGE
+        STANDARD_LIB_ERRORS: DO_NOT_USE (errors.New, fmt.Errorf)
+        BARE_ERROR_RETURNS: DO_NOT_RETURN_UNWRAPPED_ERRORS
+        DIRECT_STRING_ERRORS: DO_NOT_RETURN_errfmt.NewError("string")_DIRECTLY
+        ERRFMT_CHAIN: FUNCTION_DOES_NOT_EXIST_USE_errfmt.Error_INSTEAD
+        NIL_WRAPPING: AVOID_CALLS_LIKE errfmt.Error(nil, ...)
+        NIL_ERROR_HANDLING: IF_INPUT_ERROR_IS_NIL_RETURN_NIL_DIRECTLY (DO_NOT_WRAP_NIL)
+
+3. GO_GENERATE_USAGE_POLICY
+    MOCKGEN_AND_CODE_GENERATION: USE_GO_GENERATE_COMMAND_ONLY
+    DIRECT_TOOL_CALLS_PROHIBITED: NO_DIRECT_MOCKGEN_PROTOC_STRINGER_ETC
+    PROPER_USAGE_PATTERN: go generate ./path/to/package/...
+    RATIONALE: ENSURES_CONSISTENCY_WITH_GO_GENERATE_DIRECTIVES_IN_CODE
+    WORKFLOW:
+        CHECK_FOR_GO_GENERATE_DIRECTIVES_IN_FILES
+        USE_GO_GENERATE_TO_EXECUTE_FOUND_DIRECTIVES
+        NEVER_BYPASS_WITH_DIRECT_TOOL_CALLS
+
+3.1. GO_GENERATE_DIRECTIVES_PLACEMENT_POLICY
+    LOCATION_RULE: ALWAYS_AT_TOP_OF_FILE_BEFORE_PACKAGE_DECLARATION
+    MANDATORY_PLACEMENT: FIRST_LINES_OF_FILE_BEFORE_ANY_CODE_COMMENTS_OR_PACKAGE
+    DIRECTIVE_FORMAT: //go:generate [tool] [parameters]
+    EXAMPLES:
+        CORRECT_PLACEMENT_MOCKGEN:
+            '''
+            //go:generate mockgen -source=user_repository.go -destination=mock/user_repository.go
+            
+            package service
+            
+            import (
+                "context"
+            )
+            '''
+        CORRECT_PLACEMENT_MULTIPLE_DIRECTIVES:
+            '''
+            //go:generate mockgen -source=client.go -destination=mocks/mocks.go -package=mocks ChecksumFactory,APITracker
+            //go:generate stringer -type=Status -output=status_string.go
+            
+            package client
+            
+            import (
+                "context"
+            )
+            '''
+        INCORRECT_PLACEMENT_AFTER_PACKAGE:
+            '''
+            package service
+            
+            //go:generate mockgen -source=user_repository.go -destination=mock/user_repository.go // WRONG: AFTER PACKAGE
+            '''
+        INCORRECT_PLACEMENT_AFTER_IMPORTS:
+            '''
+            package service
+            
+            import "context"
+            
+            //go:generate mockgen -source=user_repository.go -destination=mock/user_repository.go // WRONG: AFTER IMPORTS
+            '''
+    RATIONALE: ENSURES_VISIBILITY_AND_CONSISTENCY_ACROSS_ALL_GO_FILES
+    ENFORCEMENT: MANDATORY_FOR_ALL_GO_GENERATE_DIRECTIVES
+
+4. COMMENTS_POLICY
+    GENERAL_PRINCIPLES
+        NECESSARY_COMMENTS_ONLY: TRUE
+        AVOID_UNNECESSARY_COMMENTS: TRUE
+        CONCISENESS: SINGLE_LINE_PREFERRED
+    EXAMPLES_OF_GOOD_COMMENTS
+        EXAMPLE_1_CONCISE_EXPLANATION
+            '''
+            // краткий комментарий
+            some, err := functionCall(a, b)
+            '''
+        EXAMPLE_2_STRUCT_FIELD_DESCRIPTION
+            '''
+            // структура описывает сервис
+            type Service struct {
+                field string // описание поля
+            }
+            '''
+    POST_EDIT_ACTION_REMOVE_COMMENTED_OUT_CODE
+        VERIFY_AND_DELETE_COMMENTED_OUT_CODE_AFTER_FILE_EDIT: TRUE
+        EXAMPLES_OF_CODE_TO_DELETE
+            EXAMPLE_1_MULTILINE_BLOCK_COMMENT
+                '''
+                /* что-то
+                закомментированное
+                */
+                '''
+            EXAMPLE_2_CONSECUTIVE_SINGLE_LINE_COMMENTS
+                '''
+                // comment to this code
+                // a = b
+                // callSomethind()
+                '''
+
+5. CODE_FORMATTING_STYLE_POLICY
+    RETURN_STATEMENTS_FORMATTING
+        EMPTY_LINE_ABOVE_RETURN: MANDATORY
+        SCOPE_BEGINNING_EXCEPTION: IF_RETURN_IS_FIRST_STATEMENT_IN_SCOPE_NO_EMPTY_LINE_REQUIRED
+        SCOPE_DEFINITION: BEGINNING_OF_METHOD_IF_FOR_SWITCH_CASE_FUNC_LITERAL_SELECT_DEFER
+        EXAMPLES_NO_EMPTY_LINE_REQUIRED:
+            EXAMPLE_METHOD_START: 
+                '''
+                func GetUser() User {
+                    return defaultUser // NO_EMPTY_LINE_ABOVE
+                }
+                '''
+            EXAMPLE_IF_BLOCK_START:
+                '''
+                if condition {
+                    return value // NO_EMPTY_LINE_ABOVE
+                }
+                '''
+            EXAMPLE_FOR_LOOP_START:
+                '''
+                for i := 0; i < len(items); i++ {
+                    return items[i] // NO_EMPTY_LINE_ABOVE
+                }
+                '''
+            EXAMPLE_SWITCH_CASE_START:
+                '''
+                switch status {
+                case "active":
+                    return processActive() // NO_EMPTY_LINE_ABOVE
+                default:
+                    return defaultResult() // NO_EMPTY_LINE_ABOVE
+                }
+                '''
+            EXAMPLE_SELECT_CASE_START:
+                '''
+                select {
+                case result := <-ch:
+                    return result // NO_EMPTY_LINE_ABOVE
+                default:
+                    return nil // NO_EMPTY_LINE_ABOVE
+                }
+                '''
+            EXAMPLE_FUNC_LITERAL_START:
+                '''
+                handler := func() error {
+                    return processRequest() // NO_EMPTY_LINE_ABOVE
+                }
+                '''
+        EXAMPLES_EMPTY_LINE_REQUIRED:
+            EXAMPLE_AFTER_VARIABLE_DECLARATION:
+                '''
+                result := calculateResult()
+                
+                return result // EMPTY_LINE_ABOVE_REQUIRED
+                '''
+            EXAMPLE_AFTER_METHOD_CALL:
+                '''
+                s.processData()
+                
+                return nil // EMPTY_LINE_ABOVE_REQUIRED
+                '''
+            EXAMPLE_AFTER_ASSIGNMENT:
+                '''
+                user.Status = "active"
+                
+                return user // EMPTY_LINE_ABOVE_REQUIRED
+                '''
+            EXAMPLE_AFTER_CONTROL_STRUCTURE:
+                '''
+                for _, item := range items {
+                    processItem(item)
+                }
+                
+                return nil // EMPTY_LINE_ABOVE_REQUIRED
+                '''
+        RATIONALE: IMPROVES_CODE_READABILITY_BY_SEPARATING_RETURN_FROM_PRECEDING_LOGIC
+        ENFORCEMENT: MANDATORY_UNLESS_SCOPE_BEGINNING_EXCEPTION_APPLIES
+    VARIABLE_DECLARATIONS
+        EMPTY_LINES_AROUND_VAR_DECLARATIONS: MANDATORY_ABOVE_AND_BELOW
+        EXCEPTION_VAR_FOLLOWED_BY_CONDITION: IF_VAR_DECLARATION_IMMEDIATELY_FOLLOWED_BY_IF_NO_EMPTY_LINE_BELOW
+        EXAMPLE_EXCEPTION:
+            result := getValue()
+            if result != nil { // NO_EMPTY_LINE_ABOVE_IF
+        EXAMPLE_STANDARD:
+            // some code
+            
+            data := processData()
+            
+            // more code
+
+6. CONTEXT_PARAMETER_POLICY
+    MANDATORY_CONTEXT: ALL_METHODS_MUST_HAVE_CONTEXT_CTX_CONTEXT_CONTEXT_AS_FIRST_PARAMETER
+    EXCEPTIONS: STATIC_MINI_METHODS_SIMPLE_GETTERS_SETTERS_CONSTRUCTORS
+    UNUSED_CONTEXT: USE_UNDERSCORE_PREFIX (_ context.Context) IF_NOT_USED_IN_METHOD_BODY
+    RATIONALE: CONTEXT_CONTAINS_USEFUL_LOGGING_INFORMATION_TRACING_CANCELLATION
+    EXAMPLES:
+        CORRECT_USAGE:
+            func (s *Service) ProcessPayment(ctx context.Context, amount int) error
+            func (s *Service) GetUser(_ context.Context, id string) *User // unused but present
+        EXCEPTIONS_ALLOWED:
+            func NewService() *Service // constructor
+            func (u *User) GetID() string // simple getter
+            func validateEmail(email string) bool // static mini method
+
+7. DTO_MULTIPLE_PARAMETERS_POLICY
+    INPUT_PARAMETERS_RULE:
+        TRIGGER: MORE_THAN_4_ARGUMENTS
+        ACTION: CREATE_[MethodName]Request_STRUCT
+        CONTEXT_EXCEPTION: CTX_ALWAYS_SEPARATE_FIRST_PARAMETER_NEVER_IN_REQUEST
+    OUTPUT_PARAMETERS_RULE:
+        TRIGGER: MORE_THAN_3_OUTPUT_ARGUMENTS
+        ACTION: CREATE_[MethodName]Response_STRUCT
+        ERROR_EXCEPTION: ERROR_ALWAYS_SEPARATE_LAST_PARAMETER_NEVER_IN_RESPONSE
+    NAMING_CONVENTION:
+        REQUEST_STRUCTS: [MethodName]Request (CreateUserRequest, UpdatePaymentRequest)
+        RESPONSE_STRUCTS: [MethodName]Response (GetUserResponse, ProcessPaymentResponse)
+    PLACEMENT_RULES: FOLLOW_MODEL_ORGANIZATION_POLICY_VARIANTS_1_2_3
+
+8. INTERFACE_ORGANIZATION_POLICY
+    PLACEMENT_RULE: INTERFACES_ABOVE_STRUCT_BELOW_CONSTANTS_VARS
+    VISIBILITY_DEFAULT: PRIVATE_INTERFACES_BY_DEFAULT
+    CONSUMER_DEFINES_INTERFACE: PKG_NEEDING_DEPENDENCY_DEFINES_INTERFACE
+    STRUCTURE_ORDER:
+        PACKAGE_DECLARATION
+        IMPORTS
+        CONSTANTS
+        GLOBAL_VARS  
+        INTERFACES (for this file's structs)
+        STRUCTS
+        CONSTRUCTORS
+        METHODS
+    EXAMPLES:
+        CORRECT_PLACEMENT:
+            '''
+            const DefaultTimeout = 30 * time.Second
+            
+            var ErrNotFound = errfmt.NewError("not found")
+            
+            // userRepository defines what this service needs from user repo
+            type userRepository interface {
+                GetByID(ctx context.Context, id string) (*User, error)
+                Create(ctx context.Context, user User) error
+            }
+            
+            // paymentGateway defines what this service needs from payment gateway
+            type paymentGateway interface {
+                Process(ctx context.Context, payment Payment) error
+            }
+            
+            type Service struct {
+                userRepo userRepository
+                gateway  paymentGateway
+            }
+            '''
+    NAMING_CONVENTION:
+        PRIVATE_INTERFACES: camelCase (userRepository, paymentGateway)
+        PUBLIC_INTERFACES: PascalCase (UserService, PaymentProcessor) ONLY_IF_TRULY_NEEDED
+    CONSUMER_DEFINES_PRINCIPLE:
+        RULE: SERVICE_NEEDING_DEPENDENCY_DEFINES_INTERFACE_IT_NEEDS
+        EXAMPLE: UserService_DEFINES_userRepository_INTERFACE_NOT_Repository_PACKAGE
+    NO_TYPES_GO_FILE: INTERFACES_IN_SAME_FILE_AS_STRUCT_USING_THEM
+
+9. INIT_FUNCTION_PROHIBITION
+    ABSOLUTE_PROHIBITION: NO_INIT_FUNCTIONS_ALLOWED_ANYWHERE
+    RATIONALE: UNCONTROLLED_SIDE_EFFECTS_TESTING_ISSUES_HIDDEN_INITIALIZATION
+    ALTERNATIVES:
+        CONSTRUCTOR_INITIALIZATION: NewService()_EXPLICIT_SETUP
+        MAIN_FUNCTION_SETUP: EXPLICIT_INITIALIZATION_IN_MAIN
+        ONCE_LAZY_INIT: sync.Once_FOR_EXPENSIVE_ONE_TIME_OPERATIONS
+    FORBIDDEN: func_init()_{...}
+    CORRECT: func_NewService()_*Service_{explicit_setup}
+
+10. MODEL_ORGANIZATION_POLICY
+    VARIANT_1_SMALL_SINGLE_METHOD_MODELS:
+        CRITERIA: 1-2_SMALL_STRUCTS_USED_ONLY_IN_ONE_METHOD
+        LOCATION: ABOVE_METHOD_AFTER_CONSTANTS_AND_GLOBAL_VARS
+        PATTERN: constants_->_vars_->_models_->_method
+        EXAMPLE: ProcessPaymentRequest/Response_ABOVE_ProcessPayment_METHOD
+    VARIANT_2_SHARED_MODELS:
+        CRITERIA: MODELS_USED_BY_MULTIPLE_METHODS_OF_SAME_STRUCT
+        LOCATION: model.go_IN_SAME_PACKAGE_AS_SERVICE
+        PATTERN: service.go_+_model.go_+_method_files
+    VARIANT_3_COMPLEX_MODELS:
+        CRITERIA: MODELS_WITH_METHODS_OR_MANY_MODELS
+        LOCATION: model/_FOLDER_INSIDE_SERVICE_PACKAGE
+        PATTERN: service.go_+_model/payment.go_user.go_card.go
+        TESTING: TESTS_ONLY_IF_MODELS_HAVE_METHODS
+        TEST_LOCATION: model/payment_test.go_SEPARATE_FILES_EXTERNAL_PACKAGE
+        TEST_PACKAGE: package_model_test_EXTERNAL_PACKAGE
+        NO_TESTING_TEST: testing_test.go_NOT_NEEDED_FOR_MODELS
+        MASK_METHODS: MANDATORY_FOR_MODELS_WITH_SENSITIVE_DATA
+
+11. ERRORS_CONSTANTS_PLACEMENT
+    SINGLE_METHOD_USE: DECLARE_BEFORE_METHOD_THAT_USES_THEM
+    MULTIPLE_METHODS_USE: DECLARE_BEFORE_SERVICE_STRUCT
+    PATTERN:
+        var_(ErrInvalidAmount_=_errfmt.NewError("invalid_amount"))_ABOVE_METHOD
+        var_(ErrUserNotFound_=_errfmt.NewError("user_not_found"))_ABOVE_STRUCT_IF_MULTIPLE_USAGE
+
+12. PRIVATE_METHODS_PLACEMENT
+    SINGLE_METHOD_USAGE: DECLARE_IMMEDIATELY_AFTER_METHOD_THAT_USES_THEM
+    MULTIPLE_METHODS_USAGE: DECLARE_AFTER_SERVICE_STRUCT
+    MANY_SHARED_METHODS: EXTRACT_TO_SEPARATE_STRUCT_WITH_INTERFACE
+    PATTERN:
+        func_(s_*Service)_ProcessPayment()_{...}
+        func_(s_*Service)_validatePayment()_{...}_//USED_ONLY_BY_ProcessPayment
+        
+        type_Service_struct_{...}
+        func_(s_*Service)_logOperation()_{...}_//USED_BY_MULTIPLE_METHODS
+
+13. FILE_ORGANIZATION_FOR_STRUCTS_WITH_METHODS
+    RULE: ONE_FILE_PER_PUBLIC_METHOD_FOR_LARGE_STRUCTS_OR_BIG_METHODS
+    STRUCTURE:
+        struct_name.go: MAIN_STRUCT_CONSTRUCTOR
+        testing_test.go: FIXTURE_FOR_TESTS
+        method_name.go: EACH_PUBLIC_METHOD_SEPARATE_FILE
+        method_name_test.go: TESTS_FOR_EACH_METHOD_SEPARATE_FILE
+    EXAMPLE_REPOSITORY_3_METHODS:
+        repository.go: Repository_struct_NewRepository()
+        testing_test.go: fixture_with_mocks
+        create_user.go: CreateUser_method
+        get_user.go: GetUser_method
+        delete_user.go: DeleteUser_method
+        create_user_test.go: CreateUser_tests
+        get_user_test.go: GetUser_tests
+        delete_user_test.go: DeleteUser_tests
+    EXCEPTION_SMALL_METHODS: GROUP_SMALL_SIMILAR_METHODS_IN_ONE_FILE
+    WHEN_TO_USE:
+        STRUCT_HAS_MORE_THAN_3_4_PUBLIC_METHODS
+        METHODS_ARE_LARGE_MORE_THAN_30_50_LINES
+        METHODS_LOGICALLY_INDEPENDENT
+        TEAM_WORKS_PARALLEL_ON_DIFFERENT_METHODS
+    BENEFITS:
+        READABILITY: EASY_TO_FIND_SPECIFIC_METHOD_CODE
+        TESTABILITY: TESTS_NEAR_IMPLEMENTATION
+        COLLABORATION: LESS_MERGE_CONFLICTS
+                 ORGANIZATION: CLEAR_STRUCTURE_FOR_LARGE_SERVICES
+
+14. EXTENDED_FORMATTING_SYNTAX_POLICY
+    METHOD_CALLS_SEPARATION:
+        EMPTY_LINES_ABOVE_BELOW: MANDATORY_FOR_EACH_METHOD_CALL
+        GROUPING_EXCEPTION: RELATED_CALLS_CAN_BE_GROUPED_WITHOUT_EMPTY_LINES
+    CONTROL_STRUCTURES:
+        IF_FOR_SELECT_SEPARATION: EMPTY_LINES_ABOVE_BELOW_MANDATORY
+        EXCEPTION_RELATED_VARIABLES: DECLARATIONS_ASSIGNMENTS_DIRECTLY_RELATED_TO_STRUCTURE_CAN_BE_ADJACENT_ABOVE
+    DEFER_STATEMENTS:
+        EMPTY_LINES_ABOVE_BELOW: MANDATORY
+        EXCEPTION_VARIABLE_OPERATION: IF_OPERATION_ON_JUST_DECLARED_VARIABLE_CAN_BE_ADJACENT (e.g., defer file.Close())
+    METHOD_LEVEL_CONSTANTS:
+        PROHIBITION: NO_CONSTANTS_IN_METHOD_SCOPE_ONLY_GLOBAL
+        VISIBILITY: PREFER_PUBLIC_CONSTANTS_FOR_TEST_USAGE
+    SCOPE_BOUNDARIES:
+        NO_EMPTY_LINES_AT_BOUNDARIES: IF_NOTHING_ABOVE_BELOW_ELEMENT (end_of_method_loop_condition)
+    EXAMPLE_CORRECT_FORMATTING:
+        '''
+        func ProcessPayment(ctx context.Context) error {
+            
+            result := s.validateInput(ctx)
+            
+            s.logStart(ctx)
+            s.incrementCounter()
+            s.trackRequest()
+            
+            items := s.getItems()
+            maxRetries := 3
+            for i := 0; i < maxRetries; i++ {
+                // logic
+            }
+            
+            file, err := os.Open("config.json")
+            defer file.Close()
+            
+            s.startTimer()
+            
+            defer s.stopTimer()
+            
+            if err != nil {
+                return err
+            }
+            
+            return nil
+        }
+        '''

@@ -1,0 +1,40 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# GO_GOCK_HTTP_MOCKING ⚡ **GO_ONLY**
+
+PURPOSE: **ПРАВИЛА ТОЛЬКО ДЛЯ GO КОДА** - HTTP моки с библиотекой gock для тестирования внешних API.
+
+## GOCK_AI_OPTIMIZED_RULE
+## GOCK_INIT_CLEANUP
+- INTERCEPT: `gock.InterceptClient(http.DefaultClient)`
+- DEFER_OFF_ALWAYS: `defer gock.Off()` # per test/subtest
+- RESTORE_CLIENT: `gock.RestoreClient(http.DefaultClient)` # use: defer post-intercept or setup/teardown
+
+## GOCK_MOCK_DEF
+- REQ_EXPECT: `gock.New("BASE_URL").METHOD("PATH")` # METHOD: Get/Post/etc.
+- RESP_STATUS: `.Reply(HTTP_STATUS)`
+- RESP_BODY_TYPES:
+    - FILE: `.File("path/to/fixture.json")`
+    - STRING: `.BodyString("raw string body")`
+    - JSON: `.JSON(jsonObject)`
+- EXAMPLE_SUCCESS:
+    `gock.New("API_URL").Get("/v1/path").Reply(http.StatusOK).File(fixture_path)`
+- EXAMPLE_ERROR:
+    `gock.New("API_URL").Get("/v1/path").Reply(http.StatusInternalServerError).BodyString("ErrorStr")`
+
+## GOCK_FIXTURES
+- LOCATION: `fixtures/` # subdir rel. to test F, typically JSON
+- PATH_DERIVE: `path.Join(filepath.Dir(runtime.Caller(0)_filename), "fixtures")`
+- CREATION_POLICY:
+    - SELF_CREATE_IF: API_RESP_FORMAT_KNOWN_CLEAR
+    - ELSE_REQ_USER: JSON_EXAMPLE_OR_STRUCTURE
+
+## GOCK_SCENARIO_TESTING
+- USE_SUBTESTS: `t.Run` # For scenarios: success, API_err, invalid_resp_fmt
+
+## CRITICAL_NOTES
+- MATCH_EXACT: MOCK_BASE_URL_PATH == CODE_REQ_URL_PATH
+- ISOLATION_MANDATORY: `defer gock.Off()`
