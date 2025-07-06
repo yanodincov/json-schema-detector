@@ -26,7 +26,13 @@
             }
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "admin",
+              "user",
+              "manager"
+            ],
+            "description": "Роль пользователя в системе"
           }
         },
         "required": [
@@ -37,7 +43,8 @@
           "role",
           "permissions"
         ]
-      }
+      },
+      "description": "Массив пользователей системы"
     }
   },
   "required": [
