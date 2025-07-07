@@ -21,7 +21,7 @@ A tool for automatic JSON document analysis and generation of structured schemas
 ## Installation
 
 ```bash
-go install github.com/yanodincov/json-schema-detector/cmd@latest
+go install github.com/yanodincov/json-schema-detector@latest
 ```
 
 ## Usage

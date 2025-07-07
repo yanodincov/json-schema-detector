@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yanodincov/json-schema-detector/cmd/root"
+	"github.com/yanodincov/json-schema-detector/internal/root"
 )
 
 func main() {
